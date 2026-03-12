@@ -1,0 +1,10 @@
+users.db
+__pycache__/
+*.pyc
+.env
+
+users.db
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+.env

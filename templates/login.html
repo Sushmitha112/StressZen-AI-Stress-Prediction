@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | StressZen</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #5e72e4;
+            --primary-dark: #4a5acf;
+            --secondary: #11cdef;
+            --light: #f8f9fa;
+        }
+        
+        body {
+            background: linear-gradient(135deg, rgba(94, 114, 228, 0.1), rgba(17, 205, 239, 0.1));
+            font-family: 'Poppins', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            background-image: url("{{ url_for('static', filename='p8.jpeg') }}");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .auth-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            background: rgb(240, 238, 238,0.5);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .auth-header h2 {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-form {
+            padding: 2rem;
+        }
+        
+        .form-control {
+            padding: 0.75rem 1rem;
+            margin-bottom: 1rem;
+            border-radius: 5px;
+        }
+        
+        .btn-auth {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-auth:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(94, 114, 228, 0.3);
+        }
+        
+        .auth-footer {
+            text-align: center;
+            padding: 1rem 2rem;
+            border-top: 1px solid #eee;
+            background: var(--light);
+        }
+        
+        .auth-footer a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+        
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background-color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-header">
+            <h2>
+                <div class="logo-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                StressZen
+            </h2>
+            <p>Log in to access your stress insights</p>
+        </div>
+        
+        <div class="auth-form">
+            {% if error %}
+            <div style="color:red; margin-bottom:15px; text-align:center;">
+                {{ error }}
+            </div>
+            {% endif %}
+            <form method="POST" action="/login">
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="password" name="password" required>
+                </div>
+                
+                <div class="mb-3 form-check">
+                    <input type="checkbox" class="form-check-input" id="remember">
+                    <label class="form-check-label" for="remember">Remember me</label>
+                </div>
+                
+                <button type="submit" class="btn btn-auth">Log In</button>
+            </form>
+        </div>
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="/register">Sign up</a></p>
+            <p><a href="/forgot-password">Forgot password?</a></p>
+        </div>
+    </div>
+
+   <!-- <script>
+    // Check if already logged in
+    if (localStorage.getItem('isLoggedIn') === 'true') {
+        window.location.href = '/'; // Redirect to home if already logged in
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const remember = document.getElementById('remember').checked;
+
+        // Simple validation
+        if (!email || !password) {
+            alert('Please fill in all fields');
+            return;
+        }
+
+        // Log for debugging
+        console.log('Login attempt:', { email, password, remember });
+
+        // Save login state
+        localStorage.setItem('isLoggedIn', 'true');
+        localStorage.setItem('userEmail', email);
+
+        // Redirect to home
+        const redirectUrl = sessionStorage.getItem('redirectUrl') || '/';
+        window.location.href = redirectUrl;
+    });
+</script> -->
+
+</body>
+</html>

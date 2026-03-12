@@ -1,0 +1,2181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Stress Assessment</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --primary-dark: #4834d4;
+            --secondary: #00cec9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --light: #f8f9fa;
+            --dark: #2d3436;
+            --gray: #636e72;
+        }
+        
+        body {
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #dfe6e9 100%);
+            background-image: url("{{ url_for('static', filename='p8.jpeg') }}");
+            background-repeat: no-repeat;
+            background-size: cover;
+
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 800px;
+            transition: all 0.3s ease;
+        }
+        
+        .section-header {
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .section-header:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+        
+        .section-description {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: var(--gray);
+        }
+        
+        /* Progress indicators */
+        .progress-container {
+            margin: 2rem 0;
+        }
+        
+        .section-progress {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+        
+        .section-step {
+            flex: 1;
+            position: relative;
+            padding: 0 10px;
+        }
+        
+        .section-step.active .step-number {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .section-step.completed .step-number {
+            background: var(--success);
+            color: white;
+        }
+        
+        .step-number {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .step-label {
+            font-size: 0.8rem;
+            color: var(--gray);
+            transition: all 0.3s ease;
+        }
+        
+        .section-step.active .step-label,
+        .section-step.completed .step-label {
+            color: var(--dark);
+            font-weight: 500;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            border-radius: 4px;
+            background: #e0e0e0;
+            margin-bottom: 2rem;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            border-radius: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+        
+        /* Question styling */
+        .question-container {
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .question-container.active {
+            display: block;
+        }
+        
+        .question-counter {
+            text-align: center;
+            margin-bottom: 1rem;
+            color: var(--primary-dark);
+            font-weight: 600;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--dark);
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        /* Enhanced input styles */
+        .input-slider {
+            width: 100%;
+            margin: 1.5rem 0;
+        }
+        
+        .slider-value {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary);
+            margin-top: 0.5rem;
+        }
+        
+        .rating-options {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.5rem 0;
+        }
+        
+        .rating-option {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 0 0.25rem;
+        }
+        
+        .rating-option:hover {
+            background: rgba(108, 92, 231, 0.1);
+        }
+        
+        .rating-option.selected {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(108, 92, 231, 0.2);
+        }
+        
+        .rating-option i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .emoji-rating {
+            font-size: 2rem;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s ease;
+        }
+        
+        .emoji-rating:hover, .emoji-rating.selected {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+        
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+        }
+        
+        .btn-nav {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn-nav:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+        
+        .btn-nav:disabled {
+            background: var(--gray);
+            opacity: 0.6;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        .btn-nav i {
+            margin: 0 4px;
+        }
+        
+        /* Results section */
+        .result-container {
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.8rem;
+            box-shadow: 0 4px 8px rgba(108, 92, 231, 0.3);
+        }
+        
+        .prediction-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .stress-level {
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            display: inline-block;
+            margin-bottom: 1rem;
+        }
+        
+        .low-stress {
+            background-color: rgba(0, 184, 148, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .moderate-stress {
+            background-color: rgba(253, 203, 110, 0.1);
+            color: #e17055;
+            border: 1px solid #e17055;
+        }
+        
+        .high-stress {
+            background-color: rgba(214, 48, 49, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        
+        /* Answer summary */
+        .answer-summary {
+            text-align: left;
+            margin-top: 2rem;
+            border-top: 1px solid #eee;
+            padding-top: 1rem;
+        }
+        
+        .summary-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        
+        .summary-question {
+            font-weight: 500;
+            color: var(--gray);
+        }
+        
+        .summary-answer {
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .custom-toast {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            animation: slideIn 0.3s ease-out;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .toast-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            color: var(--primary);
+        }
+        
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .glass-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .section-step {
+                padding: 0 5px;
+            }
+            
+            .step-label {
+                font-size: 0.7rem;
+            }
+            
+            .rating-options {
+                flex-wrap: wrap;
+            }
+            
+            .rating-option {
+                flex: 0 0 48%;
+                margin-bottom: 0.5rem;
+            }
+        }
+        
+        /* Loading spinner */
+        #loadingSpinner {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.25rem;
+        }
+         /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: var(--secondary);
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-light);
+            font-size: 0.9rem;
+        }
+        .recommendations-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 20px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .recommendation-card {
+            display: inline-block;
+            width: 300px;
+            white-space: normal;
+            margin-right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: none;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .category-icon {
+            font-size: 2rem;
+            color: #6c63ff;
+            margin-bottom: 15px;
+        }
+        
+        .recommendation-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Custom scrollbar for horizontal container */
+        .recommendations-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        .badge-stress {
+            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+         header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: white;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 2rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: white;
+            bottom: -5px;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+     <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+                <span>StressZen</span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="/">Home</a></li>
+                    <li><a href="/">Contact</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container py-5">
+        <div class="glass-card">
+            <!-- Section progress indicator -->
+            <div class="progress-container">
+                <div class="section-progress" id="sectionProgress">
+                    <!-- Dynamically filled by JavaScript -->
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill"></div>
+                </div>
+            </div>
+            
+            <!-- Section headers will be dynamically shown here -->
+            <h2 class="section-header" id="sectionTitle">Personal Information</h2>
+            <p class="section-description" id="sectionDescription">Let's start with some basic information about you</p>
+            
+            <!-- Question counter -->
+            <div class="question-counter">
+                Question <span id="current-question">1</span> of <span id="total-questions">20</span>
+            </div>
+            
+            <form id="stressForm" novalidate>
+                <!-- Each question will be in its own container -->
+                
+                <!-- Section 1: Personal Information -->
+                <!-- Question 1: Age -->
+                <div class="question-container active" id="question-1" data-section="1">
+                    <label for="age" class="form-label">
+                        <i class="fas fa-user"></i> What is your age?
+                    </label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                        <input type="number" class="form-control" id="age" name="age" min="13" max="19" required placeholder="13-19">
+                    </div>
+                    <div class="invalid-feedback">
+                        Please enter a valid age between 13 and 19
+                    </div>
+                </div>
+                
+                <!-- Question 2: Gender -->
+                <div class="question-container" id="question-2" data-section="1">
+                    <label class="form-label">
+                        <i class="fas fa-venus-mars"></i> What is your gender?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="0" onclick="selectOption(this, 'gender')">
+                            <i class="fas fa-venus"></i>
+                            <div>Female</div>
+                        </div>
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'gender')">
+                            <i class="fas fa-mars"></i>
+                            <div>Male</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="gender" name="gender" required>
+                    <div class="invalid-feedback">
+                        Please select your gender
+                    </div>
+                </div>
+                
+                <!-- Section 2: Digital Lifestyle -->
+                <!-- Question 3: Social Media -->
+                <div class="question-container" id="question-3" data-section="2">
+                    <label for="social_media" class="form-label">
+                        <i class="fas fa-comment-dots"></i> How many hours per day do you spend on social media?
+                    </label>
+                    <input type="range" class="form-range input-slider" id="social_media_slider" min="0" max="15" step="1">
+                    <div class="slider-value" id="social_media_value">7 hours</div>
+                    <input type="hidden" id="social_media" name="social_media" required>
+                </div>
+                
+                <!-- Question 4: Screen Time -->
+                <div class="question-container" id="question-4" data-section="2">
+                    <label for="screen_time" class="form-label">
+                        <i class="fas fa-desktop"></i> How many hours per day do you spend in front of screens (total)?
+                    </label>
+                    <input type="range" class="form-range input-slider" id="screen_time_slider" min="0" max="15" step="1">
+                    <div class="slider-value" id="screen_time_value">7 hours</div>
+                    <input type="hidden" id="screen_time" name="screen_time" required>
+                    <div class="invalid-feedback" id="screenTimeFeedback">
+                        Screen time must be greater than social media hours
+                    </div>
+                </div>
+                
+                <!-- Section 3: Health & Wellness -->
+                <!-- Question 5: Sleep -->
+                <div class="question-container" id="question-5" data-section="3">
+                    <label for="sleep" class="form-label">
+                        <i class="fas fa-moon"></i> How many hours do you sleep per night on average?
+                    </label>
+                    <div class="input-group mb-3">
+                        <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                        <input type="number" class="form-control" id="sleep" name="sleep" min="0" max="12" step="1" required placeholder="0-12 hours">
+                    </div>
+                    <div class="invalid-feedback">
+                        Please enter a value between 0 and 12
+                    </div>
+                </div>
+                
+                <!-- Question 6: Sleep Quality -->
+                <div class="question-container" id="question-6" data-section="3">
+                    <label class="form-label">
+                        <i class="fas fa-bed"></i> How would you rate your sleep quality?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'sleep_quality')">
+                            <i class="fas fa-frown"></i>
+                            <div>Very Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'sleep_quality')">
+                            <i class="fas fa-meh"></i>
+                            <div>Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'sleep_quality')">
+                            <i class="fas fa-smile"></i>
+                            <div>Average</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'sleep_quality')">
+                            <i class="fas fa-smile-beam"></i>
+                            <div>Good</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'sleep_quality')">
+                            <i class="fas fa-grin-stars"></i>
+                            <div>Excellent</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="sleep_quality" name="sleep_quality" required>
+                    <div class="invalid-feedback">
+                        Please select your sleep quality
+                    </div>
+                </div>
+                
+                <!-- Question 7: Exercise -->
+                <div class="question-container" id="question-7" data-section="3">
+                    <label for="exercise" class="form-label">
+                        <i class="fas fa-running"></i> How many hours per day do you exercise?
+                    </label>
+                    <input type="range" class="form-range input-slider" id="exercise_slider" min="0" max="5" step="0.5">
+                    <div class="slider-value" id="exercise_value">2.5 hours</div>
+                    <input type="hidden" id="exercise" name="exercise">
+                </div>
+                
+                <!-- Question 8: Diet Quality -->
+                <div class="question-container" id="question-8" data-section="3">
+                    <label class="form-label">
+                        <i class="fas fa-utensils"></i> How would you rate your diet quality?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'diet_quality')">
+                            <i class="fas fa-thumbs-down"></i>
+                            <div>Very Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'diet_quality')">
+                            <i class="fas fa-meh"></i>
+                            <div>Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'diet_quality')">
+                            <i class="fas fa-thumbs-up"></i>
+                            <div>Average</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'diet_quality')">
+                            <i class="fas fa-heart"></i>
+                            <div>Good</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'diet_quality')">
+                            <i class="fas fa-star"></i>
+                            <div>Excellent</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="diet_quality" name="diet_quality" required>
+                    <div class="invalid-feedback">
+                        Please select your diet quality
+                    </div>
+                </div>
+                
+                <!-- Section 4: Mental State -->
+                <!-- Question 9: Stress Score -->
+                <div class="question-container" id="question-9" data-section="4">
+                    <label class="form-label">
+                        <i class="fas fa-clipboard-list"></i> How would you rate your current stress level?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'survey_stress')">
+                            <div>1</div>
+                            <div>Very Low</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'survey_stress')">
+                            <div>2</div>
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'survey_stress')">
+                            <div>3</div>
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'survey_stress')">
+                            <div>4</div>
+                            <div>High</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'survey_stress')">
+                            <div>5</div>
+                            <div>Very High</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="survey_stress" name="survey_stress" required>
+                    <div class="invalid-feedback">
+                        Please select your stress level
+                    </div>
+                </div>
+                
+                <!-- Question 10: Mood Rating -->
+                <div class="question-container" id="question-10" data-section="4">
+                    <label class="form-label">
+                        <i class="fas fa-smile"></i> How would you rate your current mood?
+                    </label>
+                    <div style="text-align: center; margin: 1.5rem 0;">
+                        <span class="emoji-rating" data-value="1" onclick="selectEmoji(this, 'mood_rating')">😭</span>
+                        <span class="emoji-rating" data-value="2" onclick="selectEmoji(this, 'mood_rating')">😞</span>
+                        <span class="emoji-rating" data-value="3" onclick="selectEmoji(this, 'mood_rating')">😐</span>
+                        <span class="emoji-rating" data-value="4" onclick="selectEmoji(this, 'mood_rating')">🙂</span>
+                        <span class="emoji-rating" data-value="5" onclick="selectEmoji(this, 'mood_rating')">😁</span>
+                    </div>
+                    <input type="hidden" id="mood_rating" name="mood_rating">
+                </div>
+                
+                <!-- Question 11: Anxiety Symptoms -->
+                <div class="question-container" id="question-11" data-section="4">
+                    <label class="form-label">
+                        <i class="fas fa-exclamation-triangle"></i> How would you rate your anxiety symptoms?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'anxiety_symptoms')">
+                            <div>None</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'anxiety_symptoms')">
+                            <div>Mild</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'anxiety_symptoms')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'anxiety_symptoms')">
+                            <div>Severe</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'anxiety_symptoms')">
+                            <div>Very Severe</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="anxiety_symptoms" name="anxiety_symptoms" required>
+                    <div class="invalid-feedback">
+                        Please select your anxiety level
+                    </div>
+                </div>
+                
+                <!-- Question 12: Self Esteem -->
+                <div class="question-container" id="question-12" data-section="4">
+                    <label class="form-label">
+                        <i class="fas fa-brain"></i> How would you rate your self-esteem?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'self_esteem_score')">
+                            <div>Very Low</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'self_esteem_score')">
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'self_esteem_score')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'self_esteem_score')">
+                            <div>High</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'self_esteem_score')">
+                            <div>Very High</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="self_esteem_score" name="self_esteem_score" required>
+                    <div class="invalid-feedback">
+                        Please select your self esteem level
+                    </div>
+                </div>
+                
+                <!-- Section 5: Social & Academic Pressure -->
+                <!-- Question 13: Parental Pressure -->
+                <div class="question-container" id="question-13" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-home"></i> How would you rate your level of parental pressure?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'parental_pressure')">
+                            <div>Very Low</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'parental_pressure')">
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'parental_pressure')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'parental_pressure')">
+                            <div>High</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'parental_pressure')">
+                            <div>Very High</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="parental_pressure" name="parental_pressure" required>
+                    <div class="invalid-feedback">
+                        Please select your parental pressure level
+                    </div>
+                </div>
+                
+                <!-- Question 14: Peer Pressure -->
+                <div class="question-container" id="question-14" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-users"></i> How would you rate your level of peer pressure?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'peer_pressure')">
+                            <div>Very Low</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'peer_pressure')">
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'peer_pressure')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'peer_pressure')">
+                            <div>High</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'peer_pressure')">
+                            <div>Very High</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="peer_pressure" name="peer_pressure" required>
+                    <div class="invalid-feedback">
+                        Please select your peer pressure level
+                    </div>
+                </div>
+                
+                <!-- Question 15: Academic Performance -->
+                <div class="question-container" id="question-15" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-graduation-cap"></i> How would you rate your academic performance?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="0" onclick="selectOption(this, 'academic_performance')">
+                            <div>Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'academic_performance')">
+                            <div>Average</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'academic_performance')">
+                            <div>Good</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'academic_performance')">
+                            <div>Excellent</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="academic_performance" name="academic_performance">
+                </div>
+                
+                <!-- Question 16: Support System -->
+                <div class="question-container" id="question-16" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-hands-helping"></i> How would you rate your support system?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="0" onclick="selectOption(this, 'support_system')">
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'support_system')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'support_system')">
+                            <div>High</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="support_system" name="support_system" required>
+                </div>
+                
+                <!-- Question 17: Relationship Issues -->
+                <div class="question-container" id="question-17" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-heart"></i> How would you describe your relationship issues?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'relationship_issues')">
+                            <div>No issues</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'relationship_issues')">
+                            <div>Minor issues</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'relationship_issues')">
+                            <div>Some issues</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'relationship_issues')">
+                            <div>Significant issues</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'relationship_issues')">
+                            <div>Severe issues</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="relationship_issues" name="relationship_issues">
+                </div>
+                
+                <!-- Question 18: Time Management -->
+                <div class="question-container" id="question-18" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-clock"></i> How would you rate your time management skills?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'time_management')">
+                            <div>Very Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'time_management')">
+                            <div>Poor</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'time_management')">
+                            <div>Average</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'time_management')">
+                            <div>Good</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'time_management')">
+                            <div>Excellent</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="time_management" name="time_management">
+                </div>
+                
+                <!-- Question 19: Home Environment -->
+                <div class="question-container" id="question-19" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-home"></i> How would you describe your home environment?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'home_environment')">
+                            <div>Very Stressful</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'home_environment')">
+                            <div>Stressful</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'home_environment')">
+                            <div>Neutral</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'home_environment')">
+                            <div>Comfortable</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'home_environment')">
+                            <div>Very Comfortable</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="home_environment" name="home_environment" required>
+                </div>
+                
+                <!-- Question 20: Financial Stress -->
+                <div class="question-container" id="question-20" data-section="5">
+                    <label class="form-label">
+                        <i class="fas fa-money-bill-wave"></i> How would you rate your financial stress?
+                    </label>
+                    <div class="rating-options">
+                        <div class="rating-option" data-value="1" onclick="selectOption(this, 'financial_stress')">
+                            <div>Very High</div>
+                        </div>
+                        <div class="rating-option" data-value="2" onclick="selectOption(this, 'financial_stress')">
+                            <div>High</div>
+                        </div>
+                        <div class="rating-option" data-value="3" onclick="selectOption(this, 'financial_stress')">
+                            <div>Moderate</div>
+                        </div>
+                        <div class="rating-option" data-value="4" onclick="selectOption(this, 'financial_stress')">
+                            <div>Low</div>
+                        </div>
+                        <div class="rating-option" data-value="5" onclick="selectOption(this, 'financial_stress')">
+                            <div>Very Low</div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="financial_stress" name="financial_stress">
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="nav-buttons">
+                    <button type="button" class="btn-nav" id="prev-btn" disabled>
+                        <i class="fas fa-arrow-left me-2"></i> Previous
+                    </button>
+                    <button type="button" class="btn-nav" id="next-btn">
+                        Next <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                    <button type="submit" class="btn-nav" id="submit-btn" style="display: none;">
+                        <i class="fas fa-calculator me-2"></i> Get Results
+                    </button>
+                </div>
+            </form>
+            
+            <!-- Loading spinner -->
+            <div id="loadingSpinner" class="text-center mt-4" style="display:none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Calculating...</span>
+                </div>
+                <p class="mt-2">Analyzing your responses...</p>
+            </div>
+            
+            <!-- Results container -->
+            <div id="resultContainer" class="result-container">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Your Stress Prediction</h3>
+                <div class="prediction-value" id="predictionResult">0.00</div>
+
+                <div id="stressLevel" class="stress-level">Stress Level</div>
+
+                <!-- ADD THIS -->
+                <div style="display:flex;justify-content:center;align-items:center;gap:30px;margin-top:20px">
+
+                    <!-- Chart -->
+                    <div style="width:250px">
+                        <canvas id="stressGauge"></canvas>
+                    </div>
+
+                    <!-- Stress scale -->
+                    <div style="text-align:left;font-size:14px">
+
+                        <div style="margin-bottom:10px">
+                            <span style="display:inline-block;width:15px;height:15px;background:#00b894;border-radius:3px;margin-right:8px"></span>
+                            Low Stress (0.00 – 0.32)
+                        </div>
+
+                        <div style="margin-bottom:10px">
+                            <span style="display:inline-block;width:15px;height:15px;background:#fdcb6e;border-radius:3px;margin-right:8px"></span>
+                            Moderate Stress (0.33 – 0.65)
+                        </div>
+
+                        <div>
+                            <span style="display:inline-block;width:15px;height:15px;background:#d63031;border-radius:3px;margin-right:8px"></span>
+                            High Stress (0.66 – 1.00)
+                        </div>
+
+                    </div>
+
+                </div>
+                <p class="mt-3 text-muted">Based on your input parameters</p>
+                
+                <!-- Answer summary -->
+                <div class="answer-summary" id="answerSummary">
+                    <h5>Your Responses:</h5>
+                    <!-- Will be filled by JavaScript -->
+                </div>
+                
+                <!-- Action buttons -->
+                <div class="d-flex justify-content-center gap-3 mt-4">
+                    <button class="btn btn-primary" onclick="resetQuestionnaire()">
+                       <i class="fas fa-redo-alt me-2"></i> Retake Questionnaire
+                    </button>
+
+                    <button class="btn btn-outline-primary" onclick="downloadPDF()">
+                        <i class="fas fa-download me-2"></i> Download Summary
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast notifications container -->
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="container py-4">
+        <h2 class="text-center mb-4" ><i class="fas fa-lightbulb me-2" ></i>Personalized Recommendations</h2>
+        <!-- Horizontal Recommendations -->
+        <div class="recommendations-container">
+            <!-- Sleep Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-bed"></i></div>
+                    <h4>Sleep</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Consistent bedtime
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Screen-free hour before bed
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Cool, dark bedroom
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        15-min relaxation routine
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Digital Wellness Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h4>Digital Wellness</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Set app time limits
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Phone-free meals
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Curate positive feeds
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekly digital detox
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Activity Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-running"></i></div>
+                    <h4>Activity</h4>
+                   
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        15-min walk breaks
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Try dance/yoga
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Hourly stretch breaks
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekend sports
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Academics Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-book"></i></div>
+                    <h4>Academics</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Pomodoro technique
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Priority task list
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Early help seeking
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Consistent schedule
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Social Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-users"></i></div>
+                    <h4>Social Support</h4>
+                   
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekly friend time
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Join interest groups
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Open up to trusted ones
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        School counseling
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Quick Relief Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-first-aid"></i></div>
+                    <h4>Quick Relief</h4>
+                    <p class="text-muted small">When stressed</p>
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-wind text-primary me-2"></i>
+                        4-7-8 breathing
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-hand-holding-heart text-primary me-2"></i>
+                        5-4-3-2-1 grounding
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-music text-primary me-2"></i>
+                        10-min calm music
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-pen text-primary me-2"></i>
+                        5-min journaling
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+      <div class="alert alert-warning mt-4">
+
+        <strong>Disclaimer:</strong><br>
+
+        This tool provides AI-based stress estimation and is not a medical diagnosis.
+        For mental health concerns please consult a healthcare professional.
+
+        </div> 
+    </div>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>StressZen</h3>
+                    <p>Helping you understand and manage stress through AI-powered insights.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                       
+                       
+                        <li><a href="/">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> stresszen@gmail.com</li>
+                        <li><i class="fas fa-phone"></i>9424758291 </li>
+                        <li><i class="fas fa-map-marker-alt"></i> Ramnagara 2nd cross Banglore </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 StressZen. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        
+        // Reset questionnaire when page loads
+        localStorage.removeItem('stressQuestionnaireProgress');
+        localStorage.removeItem('stressQuestionnaireCompleted');
+        // Section configuration
+        const sections = [
+            {
+                id: 1,
+                title: "Personal Information",
+                description: "Let's start with some basic information about you",
+                completed: false
+            },
+            {
+                id: 2,
+                title: "Digital Lifestyle",
+                description: "Tell us about your digital habits and screen time",
+                completed: false
+            },
+            {
+                id: 3,
+                title: "Health & Wellness",
+                description: "How would you describe your health and lifestyle?",
+                completed: false
+            },
+            {
+                id: 4,
+                title: "Mental State",
+                description: "Let's talk about your mental and emotional wellbeing",
+                completed: false
+            },
+            {
+                id: 5,
+                title: "Social & Academic Pressure",
+                description: "Tell us about your social and academic experiences",
+                completed: false
+            }
+        ];
+        
+        // Initialize the questionnaire
+        document.addEventListener('DOMContentLoaded', function () {
+            const totalQuestions = 20;
+            let currentQuestion = 1;
+            let currentSection = 1;
+            
+            // Initialize section progress
+            initSections();
+            
+            // Set up slider controls
+            setupSliders();
+            
+            // Check if we're coming back to results page
+            if (localStorage.getItem('stressQuestionnaireCompleted')) {
+                showResultsPage();
+                return;
+            }
+            
+            // Load any saved progress when page loads
+            loadProgress();
+            
+            // Initialize with first question if not already loaded
+            if (currentQuestion === 1) {
+                showQuestion(1);
+            }
+            
+            // Update progress indicators
+            function updateProgress() {
+                // Update question counter
+                document.getElementById('current-question').textContent = currentQuestion;
+                document.getElementById('total-questions').textContent = totalQuestions;
+                
+                // Update section progress
+                updateSectionProgress();
+                
+                // Update navigation buttons
+                document.getElementById('prev-btn').disabled = currentQuestion === 1;
+                document.getElementById('next-btn').style.display = currentQuestion === totalQuestions ? 'none' : 'block';
+                document.getElementById('submit-btn').style.display = currentQuestion === totalQuestions ? 'block' : 'none';
+                
+                // Scroll to top of question
+                document.querySelector('.glass-card').scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+            
+            // Initialize section progress UI
+            function initSections() {
+                const sectionProgress = document.getElementById('sectionProgress');
+                sectionProgress.innerHTML = '';
+                
+                sections.forEach(section => {
+                    const step = document.createElement('div');
+                    step.className = `section-step ${section.id === 1 ? 'active' : ''}`;
+                    step.innerHTML = `
+                        <div class="step-number">${section.id}</div>
+                        <div class="step-label">${section.title}</div>
+                    `;
+                    sectionProgress.appendChild(step);
+                });
+                
+                updateSectionTitles();
+            }
+            
+            // Update section titles based on current section
+            function updateSectionTitles() {
+                const currentSectionData = sections.find(s => s.id === currentSection);
+                if (currentSectionData) {
+                    document.getElementById('sectionTitle').textContent = currentSectionData.title;
+                    document.getElementById('sectionDescription').textContent = currentSectionData.description;
+                }
+            }
+            
+            // Update section progress indicators
+            function updateSectionProgress() {
+                const sectionSteps = document.querySelectorAll('.section-step');
+                const newSection = parseInt(document.querySelector(`#question-${currentQuestion}`).dataset.section);
+                
+                if (newSection !== currentSection) {
+                    // Section changed - show celebration if completed
+                    if (newSection > currentSection) {
+                        showToast(`Section completed! 🎉`, 'Great job! You finished the ' + sections[currentSection-1].title + ' section.');
+                    }
+                    
+                    currentSection = newSection;
+                    updateSectionTitles();
+                }
+                
+                sectionSteps.forEach((step, index) => {
+                    step.classList.remove('active', 'completed');
+                    
+                    if (index + 1 < currentSection) {
+                        step.classList.add('completed');
+                    } else if (index + 1 === currentSection) {
+                        step.classList.add('active');
+                    }
+                });
+                
+                // Update progress bar
+                const progress = (currentQuestion / totalQuestions) * 100;
+                document.getElementById('progress-fill').style.width = `${progress}%`;
+                
+                // Show milestone alerts
+                if (currentQuestion === Math.floor(totalQuestions/2)) {
+                    showToast(`Halfway there! ✨`, 'You\'ve completed half the questions. Keep going!');
+                } else if (currentQuestion === totalQuestions - 3) {
+                    showToast(`Almost done! 🏁`, 'Just 3 more questions to go!');
+                }
+            }
+            
+            // Show only current question
+            function showQuestion(questionNum) {
+                document.querySelectorAll('.question-container').forEach(q => q.classList.remove('active'));
+                document.getElementById(`question-${questionNum}`).classList.add('active');
+                updateProgress();
+            }
+            
+            // Validate current question before moving forward
+            function validateCurrentQuestion() {
+                const currentQuestionEl = document.getElementById(`question-${currentQuestion}`);
+                const inputEl = currentQuestionEl.querySelector('input[required], select[required], input[type="hidden"][required]');
+                
+                if (inputEl) {
+                    if (!inputEl.value && inputEl.value !== '0') {
+                        // Show error for required fields
+                        if (inputEl.type === 'hidden') {
+                            // For our custom inputs (rating options)
+                            showToast('Please select an option', 'You need to answer this question to continue.');
+                        } else {
+                            inputEl.classList.add('is-invalid');
+                        }
+                        return false;
+                    }
+                    
+                    if (inputEl.type === 'number') {
+                        const min = parseFloat(inputEl.min);
+                        const max = parseFloat(inputEl.max);
+                        const value = parseFloat(inputEl.value);
+                        if (isNaN(value) || value < min || value > max) {
+                            inputEl.classList.add('is-invalid');
+                            return false;
+                        }
+                    }
+                    
+                    // Screen time validation
+                    if (currentQuestion === 4) {
+                        const socialMedia = parseFloat(document.getElementById('social_media').value);
+                        const screenTime = parseFloat(document.getElementById('screen_time').value);
+                        if (screenTime <= socialMedia) {
+                            document.getElementById('screenTimeFeedback').style.display = 'block';
+                            showToast('Invalid screen time', 'Total screen time must be greater than social media time.');
+                            return false;
+                        }
+                    }
+                }
+                
+                return true;
+            }
+            
+            // Navigation buttons
+            document.getElementById('next-btn').addEventListener('click', function () {
+                if (validateCurrentQuestion()) {
+                    currentQuestion++;
+                    showQuestion(currentQuestion);
+                    saveProgress();
+                }
+            });
+            
+            document.getElementById('prev-btn').addEventListener('click', function () {
+                currentQuestion--;
+                showQuestion(currentQuestion);
+            });
+            
+            // Form submission
+            document.getElementById('stressForm').addEventListener('submit', function (e) {
+                e.preventDefault();
+                
+                if (validateCurrentQuestion()) {
+                    document.getElementById('loadingSpinner').style.display = 'block';
+                    // Mark as completed in localStorage
+                    localStorage.setItem('stressQuestionnaireCompleted', 'true');
+                    
+                    setTimeout(() => {
+                        predictStress();
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        saveProgress(true); // Clear saved progress after completion
+                    }, 1500);
+                }
+            });
+            
+            // Set up slider controls
+            function setupSliders() {
+                // Social media slider
+                const socialMediaSlider = document.getElementById('social_media_slider');
+                const socialMediaValue = document.getElementById('social_media_value');
+                const socialMediaInput = document.getElementById('social_media');
+                
+                socialMediaSlider.addEventListener('input', function() {
+                    const value = this.value;
+                    socialMediaValue.textContent = `${value} hour${value == 1 ? '' : 's'}`;
+                    socialMediaInput.value = value;
+                });
+                
+                // Screen time slider
+                const screenTimeSlider = document.getElementById('screen_time_slider');
+                const screenTimeValue = document.getElementById('screen_time_value');
+                const screenTimeInput = document.getElementById('screen_time');
+                
+                screenTimeSlider.addEventListener('input', function() {
+                    const value = this.value;
+                    screenTimeValue.textContent = `${value} hour${value == 1 ? '' : 's'}`;
+                    screenTimeInput.value = value;
+                });
+                
+                // Exercise slider
+                const exerciseSlider = document.getElementById('exercise_slider');
+                const exerciseValue = document.getElementById('exercise_value');
+                const exerciseInput = document.getElementById('exercise');
+                
+                exerciseSlider.addEventListener('input', function() {
+                    const value = this.value;
+                    exerciseValue.textContent = `${value} hour${value == 1 ? '' : 's'}`;
+                    exerciseInput.value = value;
+                });
+                
+                // Set initial values
+                socialMediaSlider.dispatchEvent(new Event('input'));
+                screenTimeSlider.dispatchEvent(new Event('input'));
+                exerciseSlider.dispatchEvent(new Event('input'));
+            }
+            
+            // Save progress to localStorage
+            function saveProgress(clear = false) {
+                if (clear) {
+                    localStorage.removeItem('stressQuestionnaireProgress');
+                    return;
+                }
+                
+                const formData = new FormData(document.getElementById('stressForm'));
+                const data = {};
+                formData.forEach((value, key) => {
+                    // Only save if there's a value (skip empty fields)
+                    if (value !== '' && value !== undefined) {
+                        data[key] = value;
+                    }
+                });
+                
+                const progress = {
+                    currentQuestion: currentQuestion,
+                    formData: data
+                };
+                
+                localStorage.setItem('stressQuestionnaireProgress', JSON.stringify(progress));
+            }
+            
+            // Load progress from localStorage
+            function loadProgress() {
+                const savedProgress = localStorage.getItem('stressQuestionnaireProgress');
+                if (savedProgress) {
+                    const progress = JSON.parse(savedProgress);
+                    currentQuestion = progress.currentQuestion || 1;
+                    
+                    // Fill form fields
+                    for (const key in progress.formData) {
+                        const value = progress.formData[key];
+                        const input = document.querySelector(`[name="${key}"]`);
+                        
+                        if (input) {
+                            if (input.type === 'radio' || input.type === 'checkbox') {
+                                input.checked = input.value === value;
+                            } else {
+                                input.value = value;
+                                
+                                // Update UI for custom inputs
+                                if (input.type === 'hidden' && input.id) {
+                                    // For rating options
+                                    const selectedOption = document.querySelector(`.rating-option[data-value="${value}"][onclick*="${input.id}"]`);
+                                    if (selectedOption) {
+                                        selectOption(selectedOption, input.id, false);
+                                    }
+                                    
+                                    // For emoji ratings
+                                    const selectedEmoji = document.querySelector(`.emoji-rating[data-value="${value}"][onclick*="${input.id}"]`);
+                                    if (selectedEmoji) {
+                                        selectEmoji(selectedEmoji, input.id, false);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Update sliders
+                    const socialMediaInput = document.getElementById('social_media');
+                    if (socialMediaInput.value) {
+                        document.getElementById('social_media_slider').value = socialMediaInput.value;
+                        document.getElementById('social_media_slider').dispatchEvent(new Event('input'));
+                    }
+                    
+                    const screenTimeInput = document.getElementById('screen_time');
+                    if (screenTimeInput.value) {
+                        document.getElementById('screen_time_slider').value = screenTimeInput.value;
+                        document.getElementById('screen_time_slider').dispatchEvent(new Event('input'));
+                    }
+                    
+                    const exerciseInput = document.getElementById('exercise');
+                    if (exerciseInput.value) {
+                        document.getElementById('exercise_slider').value = exerciseInput.value;
+                        document.getElementById('exercise_slider').dispatchEvent(new Event('input'));
+                    }
+                    
+                    showQuestion(currentQuestion);
+                    showToast('Progress loaded', 'We found your previous answers. You can continue where you left off.');
+                }
+            }
+            
+            // Show results page directly
+            function showResultsPage() {
+                // Hide the form and show results
+                document.getElementById('stressForm').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'block';
+                
+                // Calculate results again
+                predictStress();
+            }
+            
+            // Show toast notification
+            function showToast(title, message) {
+                const toastContainer = document.getElementById('toastContainer');
+                const toast = document.createElement('div');
+                toast.className = 'custom-toast';
+                toast.innerHTML = `
+                    <div class="toast-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <div>
+                        <strong>${title}</strong>
+                        <div class="toast-message">${message}</div>
+                    </div>
+                `;
+                
+                toastContainer.appendChild(toast);
+                
+                // Remove toast after 5 seconds
+                setTimeout(() => {
+                    toast.style.animation = 'fadeOut 0.3s ease-out';
+                    setTimeout(() => toast.remove(), 300);
+                }, 5000);
+            }
+        });
+        
+        // Helper function to select rating options
+        function selectOption(element, inputId, showToast = true) {
+            const value = element.getAttribute('data-value');
+            const container = element.closest('.rating-options');
+            
+            // Remove selected class from all options in this group
+            container.querySelectorAll('.rating-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked option
+            element.classList.add('selected');
+            
+            // Update hidden input value
+            document.getElementById(inputId).value = value;
+            
+            if (showToast) {
+                // Show feedback for mood ratings
+                if (inputId === 'mood_rating') {
+                    const moods = ['😭 Very Poor', '😞 Poor', '😐 Neutral', '🙂 Good', '😁 Excellent'];
+                    showToast('Mood recorded', `You selected: ${moods[value-1]}`);
+                }
+            }
+        }
+        
+        // Helper function to select emoji ratings
+        function selectEmoji(element, inputId, showToast = true) {
+            const value = element.getAttribute('data-value');
+            const container = element.parentElement;
+            
+            // Remove selected class from all emojis in this group
+            container.querySelectorAll('.emoji-rating').forEach(emoji => {
+                emoji.classList.remove('selected');
+            });
+            
+            // Add selected class to clicked emoji
+            element.classList.add('selected');
+            
+            // Update hidden input value
+            document.getElementById(inputId).value = value;
+        }
+        
+        // Stress prediction (mock logic)
+function predictStress(){
+
+    //const form = document.getElementById("stressForm");
+   // const formData = new FormData(form);
+
+    const inputData = {
+
+    age: Number(document.getElementById("age").value),
+    gender: Number(document.getElementById("gender").value),
+    social_media: Number(document.getElementById("social_media").value),
+    exercise: Number(document.getElementById("exercise").value),
+    sleep: Number(document.getElementById("sleep").value),
+    screen_time: Number(document.getElementById("screen_time").value),
+    survey_stress: Number(document.getElementById("survey_stress").value),
+    support_system: Number(document.getElementById("support_system").value),
+    academic_performance: Number(document.getElementById("academic_performance").value)
+
+};
+
+    // formData.forEach((value,key)=>{
+    //     if(value !== ""){
+    //         inputData[key] = value;
+    //     }
+    // });
+    console.log("Sending data:", inputData);
+    createAnswerSummary(inputData);
+    
+    fetch("/predict",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify(inputData)
+    })
+    .then(response=>{
+        if(!response.ok){
+            throw new Error("Server error: "+response.status);
+        }
+        return response.json();
+    })
+
+    .then(data=>{
+
+        if(data.error){
+            showToast("Prediction Error", data.error);
+            return;
+        }
+
+        const prediction = data.prediction;
+
+        document.getElementById("predictionResult").innerText = prediction;
+        drawStressGauge(prediction);
+
+        const stressLevel = document.getElementById("stressLevel");
+
+        if(prediction < 0.33){
+            stressLevel.innerHTML = "Low Stress";
+        }
+        else if(prediction < 0.66){
+            stressLevel.innerHTML = "Moderate Stress";
+        }
+        else{
+            stressLevel.innerHTML = "High Stress";
+        }
+
+        document.getElementById("resultContainer").style.display = "block";
+        document.getElementById("resultContainer").scrollIntoView({behavior:"smooth"});
+
+    })
+
+    .catch(err=>{
+        console.error(err);
+        showToast("Error","Server connection failed");
+    });
+
+}
+        
+        // Create answer summary
+        function createAnswerSummary(data) {
+            const summaryContainer = document.getElementById('answerSummary');
+            summaryContainer.innerHTML = '<h5>Your Responses:</h5>';
+            
+            // Map of question IDs to human-readable labels
+            const questionLabels = {
+                age: 'Age',
+                gender: 'Gender',
+                social_media: 'Social Media Usage (hours/day)',
+                screen_time: 'Total Screen Time (hours/day)',
+                sleep: 'Sleep Duration (hours/night)',
+                sleep_quality: 'Sleep Quality',
+                exercise: 'Exercise (hours/day)',
+                diet_quality: 'Diet Quality',
+                survey_stress: 'Self-Reported Stress Level',
+                mood_rating: 'Current Mood',
+                anxiety_symptoms: 'Anxiety Symptoms',
+                self_esteem_score: 'Self Esteem',
+                parental_pressure: 'Parental Pressure',
+                peer_pressure: 'Peer Pressure',
+                academic_performance: 'Academic Performance',
+                support_system: 'Support System',
+                relationship_issues: 'Relationship Issues',
+                time_management: 'Time Management Skills',
+                home_environment: 'Home Environment',
+                financial_stress: 'Financial Stress'
+            };
+            
+            // Map of values to human-readable options
+            const valueMaps = {
+                gender: { '0': 'Female', '1': 'Male' },
+                sleep_quality: { '1': 'Very Poor', '2': 'Poor', '3': 'Average', '4': 'Good', '5': 'Excellent' },
+                diet_quality: { '1': 'Very Poor', '2': 'Poor', '3': 'Average', '4': 'Good', '5': 'Excellent' },
+                survey_stress: { '1': 'Very Low', '2': 'Low', '3': 'Moderate', '4': 'High', '5': 'Very High' },
+                mood_rating: { '1': 'Very Poor', '2': 'Poor', '3': 'Neutral', '4': 'Good', '5': 'Excellent' },
+                anxiety_symptoms: { '1': 'None', '2': 'Mild', '3': 'Moderate', '4': 'Severe', '5': 'Very Severe' },
+                self_esteem_score: { '1': 'Very Low', '2': 'Low', '3': 'Moderate', '4': 'High', '5': 'Very High' },
+                parental_pressure: { '1': 'Very Low', '2': 'Low', '3': 'Moderate', '4': 'High', '5': 'Very High' },
+                peer_pressure: { '1': 'Very Low', '2': 'Low', '3': 'Moderate', '4': 'High', '5': 'Very High' },
+                academic_performance: { '0': 'Poor', '1': 'Average', '2': 'Good', '3': 'Excellent' },
+                support_system: { '0': 'Low', '1': 'Moderate', '2': 'High' },
+                relationship_issues: { '1': 'No issues', '2': 'Minor issues', '3': 'Some issues', '4': 'Significant issues', '5': 'Severe issues' },
+                time_management: { '1': 'Very Poor', '2': 'Poor', '3': 'Average', '4': 'Good', '5': 'Excellent' },
+                home_environment: { '1': 'Very Stressful', '2': 'Stressful', '3': 'Neutral', '4': 'Comfortable', '5': 'Very Comfortable' },
+                financial_stress: { '1': 'Very High', '2': 'High', '3': 'Moderate', '4': 'Low', '5': 'Very Low' }
+            };
+            
+            // Create summary items
+            for (const key in questionLabels) {
+                if (data[key] !== undefined && data[key] !== '') {
+                    const item = document.createElement('div');
+                    item.className = 'summary-item';
+                    
+                    const question = document.createElement('div');
+                    question.className = 'summary-question';
+                    question.textContent = questionLabels[key];
+                    
+                    const answer = document.createElement('div');
+                    answer.className = 'summary-answer';
+                    
+                    if (valueMaps[key] && valueMaps[key][data[key]]) {
+                        answer.textContent = valueMaps[key][data[key]];
+                    } else if (data[key] !== undefined) {
+                        answer.textContent = data[key];
+                        
+                        // Add units where appropriate
+                        if (key === 'social_media' || key === 'screen_time' || key === 'exercise') {
+                            answer.textContent += ' hours/day';
+                        } else if (key === 'sleep') {
+                            answer.textContent += ' hours/night';
+                        }
+                    } else {
+                        answer.textContent = 'Skipped';
+                    }
+                    
+                    item.appendChild(question);
+                    item.appendChild(answer);
+                    summaryContainer.appendChild(item);
+                }
+            }
+        }
+        
+        // Mock PDF download function
+        function downloadPDF() {
+
+            const prediction = document.getElementById("predictionResult").innerText
+            const level = document.getElementById("stressLevel").innerText
+
+            const answers = {}
+
+            document.querySelectorAll("#answerSummary .summary-item").forEach(item => {
+
+                const question = item.querySelector(".summary-question").innerText
+                const answer = item.querySelector(".summary-answer").innerText
+
+                answers[question] = answer
+
+            })
+
+            fetch("/download_report", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    prediction: prediction,
+                    level: level,
+                    answers: answers
+                })
+
+            })
+            .then(res => res.blob())
+            .then(blob => {
+
+                const link = document.createElement("a")
+
+                link.href = window.URL.createObjectURL(blob)
+
+                link.download = "StressZen_Report.pdf"
+
+                link.click()
+
+            })
+        }
+        
+        // Helper to show toast (needs to be globally available)
+        function showToast(title, message) {
+            const toastContainer = document.getElementById('toastContainer') || document.body;
+            const toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            toast.innerHTML = `
+                <div class="toast-icon">
+                    <i class="fas fa-info-circle"></i>
+                </div>
+                <div>
+                    <strong>${title}</strong>
+                    <div class="toast-message">${message}</div>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Remove toast after 5 seconds
+            setTimeout(() => {
+                toast.style.animation = 'fadeOut 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 5000);
+
+        }
+        function resetQuestionnaire() {
+    // Clear local storage
+    localStorage.removeItem('stressQuestionnaireProgress');
+    localStorage.removeItem('stressQuestionnaireCompleted');
+
+    // Reset form
+    const form = document.getElementById('stressForm');
+    if (form) form.reset();
+
+    // Clear custom selections (emoji, stars)
+    document.querySelectorAll('.rating-option, .emoji-rating').forEach(el => el.classList.remove('selected'));
+
+    // Clear validation classes
+    document.querySelectorAll('.is-invalid, .is-valid').forEach(el => {
+        el.classList.remove('is-invalid', 'is-valid');
+    });
+
+    // Reload page
+    location.reload();
+}
+function drawStressGauge(score){
+
+    const ctx = document.getElementById("stressGauge").getContext("2d");
+
+    // decide color based on stress level
+    let color;
+
+    if(score < 0.33){
+        color = "#00b894"; // green for low stress
+    }
+    else if(score < 0.66){
+        color = "#fdcb6e"; // yellow for moderate stress
+    }
+    else{
+        color = "#d63031"; // red for high stress
+    }
+
+    // destroy previous chart if it exists
+    if(window.stressChart){
+        window.stressChart.destroy();
+    }
+
+    window.stressChart = new Chart(ctx,{
+        type:"doughnut",
+        data:{
+            labels:["Stress","Remaining"],
+            datasets:[{
+                data:[score,1-score],
+                backgroundColor:[
+                    color,
+                    "#e0e0e0"
+                ],
+                borderWidth:0
+            }]
+        },
+        options:{
+            cutout:"70%",
+            plugins:{
+                legend:{
+                    display:false
+                }
+            }
+        }
+    });
+
+}
+
+</script>
+</body>
+</html>

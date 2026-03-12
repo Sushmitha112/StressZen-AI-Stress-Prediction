@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StressZen | AI-Powered Stress Prediction</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* [Keep all your existing CSS styles] */
+         :root {
+            --primary: #5e72e4;
+            --primary-dark: #4a5acf;
+            --secondary: #11cdef;
+            --success: #2dce89;
+            --warning: #fb6340;
+            --danger: #f5365c;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --gray-light: #e9ecef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+        
+        /* Header Styles */
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: white;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 2rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: white;
+            bottom: -5px;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+        .login-btn {
+            background: white;
+            color: var(--primary);
+            padding: 0.5rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .login-btn:hover {
+            background: var(--gray-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        /* Hero Section */
+        .hero {
+            padding: 8rem 0 4rem;
+            background: linear-gradient(to right, rgba(94, 114, 228, 0.1), rgba(17, 205, 239, 0.1));
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -20%;
+            width: 70%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(94, 114, 228, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+            z-index: 0;
+        }
+        
+        .hero-content {
+            display: flex;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .hero-text {
+            flex: 1;
+            padding-right: 2rem;
+            animation: fadeIn 1s ease-out;
+        }
+        
+        .hero-image {
+            flex: 1;
+            text-align: center;
+            animation: fadeIn 1s ease-out 0.3s backwards;
+        }
+        
+        .hero h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            color: var(--gray);
+            max-width: 600px;
+        }
+        
+        .btn {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.8rem 1.8rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(94, 114, 228, 0.3);
+        }
+        
+        .btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(94, 114, 228, 0.4);
+        }
+        
+        .btn-secondary {
+            background: white;
+            color: var(--primary);
+            margin-left: 1rem;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--gray-light);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .hero-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transform: perspective(1000px) rotateY(-10deg);
+            transition: transform 0.5s ease;
+        }
+        
+        .hero-image img:hover {
+            transform: perspective(1000px) rotateY(0deg);
+        }
+        
+        /* Features Section */
+        .features {
+            padding: 5rem 0;
+            background: white;
+        }
+        
+        .section-title {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        
+        .section-title h2 {
+            font-size: 2.5rem;
+            color: var(--dark);
+            margin-bottom: 1rem;
+        }
+        
+        .section-title p {
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 10px;
+            padding: 2rem;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            text-align: center;
+            border: 1px solid var(--gray-light);
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            border-color: var(--primary);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin-bottom: 1.5rem;
+        }
+        
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        /* How It Works Section */
+        .how-it-works {
+            padding: 5rem 0;
+            background: var(--light);
+        }
+        
+        .steps {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-top: 3rem;
+            position: relative;
+        }
+        
+        .step {
+            flex: 1;
+            min-width: 250px;
+            text-align: center;
+            padding: 0 1.5rem;
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        
+        .step-number {
+            width: 60px;
+            height: 60px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin: 0 auto 1.5rem;
+            position: relative;
+            z-index: 2;
+        }
+        
+        .step h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: var(--dark);
+        }
+        
+        /* CTA Section */
+        .cta {
+            padding: 5rem 0;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+        }
+        
+        .cta h2 {
+            font-size: 2.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .cta p {
+            font-size: 1.2rem;
+            max-width: 700px;
+            margin: 0 auto 2rem;
+            opacity: 0.9;
+        }
+        
+        .cta .btn {
+            background: white;
+            color: var(--primary);
+            font-size: 1.1rem;
+            padding: 1rem 2.5rem;
+            animation: pulse 2s infinite;
+        }
+        
+        .cta .btn:hover {
+            background: var(--gray-light);
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: var(--secondary);
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-light);
+            font-size: 0.9rem;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .hero-content {
+                flex-direction: column;
+            }
+            
+            .hero-text {
+                padding-right: 0;
+                margin-bottom: 3rem;
+                text-align: center;
+            }
+            
+            .hero-text p {
+                margin-left: auto;
+                margin-right: auto;
+            }
+            
+            .hero-buttons {
+                display: flex;
+                justify-content: center;
+            }
+            
+            .steps {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .step {
+                margin-bottom: 3rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            nav ul {
+                display: none;
+                position: absolute;
+                top: 70px;
+                left: 0;
+                width: 100%;
+                background: var(--primary-dark);
+                flex-direction: column;
+                padding: 1rem 0;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            }
+            
+            nav ul.show {
+                display: flex;
+            }
+            
+            nav ul li {
+                margin: 0;
+                text-align: center;
+                padding: 0.8rem 0;
+            }
+            
+            .mobile-menu-btn {
+                display: block;
+            }
+            
+            .hero h1 {
+                font-size: 2.3rem;
+            }
+            
+            .hero p {
+                font-size: 1.1rem;
+            }
+            
+            .section-title h2 {
+                font-size: 2rem;
+            }
+            
+            .cta h2 {
+                font-size: 2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .hero {
+                padding: 6rem 0 3rem;
+            }
+            
+            .hero h1 {
+                font-size: 2rem;
+            }
+            
+            .btn {
+                display: block;
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+            
+            .btn-secondary {
+                margin-left: 0;
+            }
+            
+            .feature-card {
+                padding: 1.5rem;
+            }
+        }
+         .btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none !important;
+}
+
+.btn:disabled:hover {
+    background: var(--primary);
+}
+        /* Add these new styles for the modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-title {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+        
+        .modal-message {
+            margin-bottom: 2rem;
+            color: var(--dark);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .modal-btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: none;
+        }
+        
+        .modal-btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .modal-btn-secondary {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+        
+        .modal-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 0.5rem;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--dark) transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- [Keep all your existing HTML structure] -->
+      <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+                <span>StressZen</span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="#home">Home</a></li>
+                   
+                    <li><a href="#howwork">How It Works</a></li>
+                    <li><a href="/about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li>
+                    {% if logged_in %}
+                    <button class="login-btn" id="logoutBtn">
+                    👤 {{ user_name }} | Logout
+                    </button>
+                    {% else %}
+                    <button class="login-btn" id="loginBtn">Login</button>
+                    {% endif %}
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <h1>LIFE IS <br>ALL ABOUT <br> YOUR VISION !</h1>
+                    <p>Our advanced algorithm analyzes your daily habits and behaviors to predict your stress levels and provide personalized recommendations for a healthier, more balanced life.</p>
+                    <div class="hero-buttons">
+                    <button 
+                        id="predictBtn" 
+                        class="btn"
+                        {% if not logged_in %}disabled{% endif %}>
+                        Predict Your Stress Now
+                    </button>
+                        <a href="/about" class="btn btn-secondary">Learn More</a>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="{{ url_for('static', filename='p2.jpeg') }}" alt="Banner" style="width: 100%;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-title">
+                <h2>Why Choose StressZen?</h2>
+                <p>Our platform combines cutting-edge technology with psychological research to deliver accurate stress predictions and actionable insights.</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>AI-Powered Analysis</h3>
+                    <p>Our machine learning model analyzes multiple factors to predict your stress levels with high accuracy.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-heartbeat"></i>
+                    </div>
+                    <h3>Personalized Insights</h3>
+                    <p>Get customized recommendations based on your unique stress patterns and lifestyle.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3>Mobile Friendly</h3>
+                    <p>Access your stress predictions and recommendations anytime, anywhere from any device.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works Section -->
+    <section class="how-it-works" id="howwork">
+        <div class="container">
+            <div class="section-title">
+                <h2>How It Works</h2>
+                <p>Predicting your stress level is simple and only takes a few minutes.</p>
+            </div>
+            <div class="steps">
+                <div class="step">
+                    <div class="step-number">1</div>
+                    <h3>Give Inputs</h3>
+                    <p>Complete our brief questionnaire about your daily habits, mood, and activities.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">2</div>
+                    <h3>AI Analysis</h3>
+                    <p>Our algorithm processes your responses using psychological research and machine learning.</p>
+                </div>
+                <div class="step">
+                    <div class="step-number">3</div>
+                    <h3>Get Results</h3>
+                    <p>Receive your stress level prediction and we also provide personalized recommendations.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <h2>Ready to Understand Your Stress?</h2>
+            <p>Take control of your mental wellbeing today with our accurate stress prediction tool.</p>
+            <button 
+                id="getStartedBtn" 
+                class="btn"
+                {% if not logged_in %}disabled{% endif %}
+                onclick="window.location.href='/form'">
+                Get Started Now
+            </button>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container" id="contact">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>StressZen</h3>
+                    <p>Helping you understand and manage stress through AI-powered insights.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="#home">Home</a></li>
+                        <li><a href="/about">About Us</a></li>
+                       
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> stresszen@gmail.com</li>
+                        <li><i class="fas fa-phone"></i>9424758291 </li>
+                        <li><i class="fas fa-map-marker-alt"></i> Ramnagara 2nd cross Banglore </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 StressZen. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Add this modal for login prompt -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <h3 class="modal-title"><i class="fas fa-lock"></i> Login Required</h3>
+            <p class="modal-message">You need to login to access the stress prediction feature.</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="goToLoginBtn">Go to Login</button>
+                <button class="modal-btn modal-btn-secondary" id="cancelLoginBtn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add this modal for confirmation -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3 class="modal-title"><i class="fas fa-gamepad"></i> Ready for the Stress Game?</h3>
+            <p class="modal-message">This interactive assessment will help us understand your stress levels. Are you ready to begin?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-primary" id="startAssessmentBtn">Yes, Let's Go!</button>
+                <button class="modal-btn modal-btn-secondary" id="cancelAssessmentBtn">Not Now</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+const isLoggedIn = {{ logged_in | tojson }};        
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const navMenu = document.getElementById('navMenu');
+const loginBtn = document.getElementById('loginBtn');
+const predictBtn = document.getElementById('predictBtn');
+const getStartedBtn = document.getElementById('getStartedBtn');
+
+const loginModal = document.getElementById('loginModal');
+const confirmModal = document.getElementById('confirmModal');
+
+const goToLoginBtn = document.getElementById('goToLoginBtn');
+const cancelLoginBtn = document.getElementById('cancelLoginBtn');
+
+const startAssessmentBtn = document.getElementById('startAssessmentBtn');
+const cancelAssessmentBtn = document.getElementById('cancelAssessmentBtn');
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+    logoutBtn.onclick = function(){
+        window.location.href = "/logout";
+    }
+}
+
+/* ===============================
+   MOBILE MENU
+================================ */
+if (mobileMenuBtn && navMenu) {
+    mobileMenuBtn.addEventListener('click', () => {
+        navMenu.classList.toggle('show');
+    });
+}
+
+
+/* ===============================
+   SCROLL ANIMATION
+================================ */
+
+function animateOnScroll() {
+
+    const elements = document.querySelectorAll('.feature-card, .step');
+    const windowHeight = window.innerHeight;
+
+    elements.forEach(element => {
+
+        const elementPosition = element.getBoundingClientRect().top;
+
+        if (elementPosition < windowHeight - 100) {
+            element.style.opacity = "1";
+            element.style.transform = "translateY(0)";
+        }
+
+    });
+
+}
+
+document.querySelectorAll('.feature-card, .step').forEach(el => {
+    el.style.opacity = "0";
+    el.style.transform = "translateY(30px)";
+    el.style.transition = "all 0.6s ease-out";
+});
+
+window.addEventListener("load", animateOnScroll);
+window.addEventListener("scroll", animateOnScroll);
+
+
+/* ===============================
+   LOGIN STATE FROM FLASK
+================================ */
+
+function checkLoginState() {
+
+    if (predictBtn) {
+
+        if (isLoggedIn) {
+            predictBtn.disabled = false;
+            predictBtn.onclick = showConfirmModal;
+        } else {
+            predictBtn.disabled = true;
+            predictBtn.onclick = showLoginModal;
+        }
+
+    }
+
+}
+
+
+    /* Get Started button */
+
+    if (getStartedBtn) {
+
+        if (isLoggedIn) {
+
+            getStartedBtn.disabled = false;
+
+            getStartedBtn.onclick = function () {
+                showConfirmModal();
+            };
+
+        } else {
+
+            getStartedBtn.disabled = true;
+
+            getStartedBtn.onclick = function () {
+                showLoginModal();
+            };
+
+        }
+
+    }
+
+
+    /* Login button */
+
+    if (loginBtn) {
+
+        if (isLoggedIn) {
+
+            loginBtn.innerHTML = '<i class="fas fa-sign-out-alt"></i> Logout';
+
+            loginBtn.onclick = function () {
+                window.location.href = "/logout";
+            };
+
+        } else {
+
+            loginBtn.innerHTML = '<i class="fas fa-sign-in-alt"></i> Login';
+
+            loginBtn.onclick = function () {
+                window.location.href = "/login";
+            };
+
+        }
+
+    }
+
+
+
+
+/* ===============================
+   MODAL FUNCTIONS
+================================ */
+
+function showLoginModal() {
+
+    if (loginModal) {
+        loginModal.style.display = "flex";
+    }
+
+}
+
+function showConfirmModal() {
+
+    if (confirmModal) {
+        confirmModal.style.display = "flex";
+    }
+
+}
+
+function closeAllModals() {
+
+    if (loginModal) loginModal.style.display = "none";
+    if (confirmModal) confirmModal.style.display = "none";
+
+}
+
+
+/* ===============================
+   MODAL BUTTON EVENTS
+================================ */
+
+if (goToLoginBtn) {
+
+    goToLoginBtn.addEventListener("click", () => {
+
+        window.location.href = "/login";
+        closeAllModals();
+
+    });
+
+}
+
+if (cancelLoginBtn) {
+
+    cancelLoginBtn.addEventListener("click", closeAllModals);
+
+}
+
+if (startAssessmentBtn) {
+
+    startAssessmentBtn.addEventListener("click", () => {
+
+        window.location.href = "/form";
+        closeAllModals();
+
+    });
+
+}
+
+if (cancelAssessmentBtn) {
+
+    cancelAssessmentBtn.addEventListener("click", closeAllModals);
+
+}
+
+
+/* Close modal if clicking outside */
+
+window.addEventListener("click", (e) => {
+
+    if (e.target.classList.contains("modal")) {
+
+        closeAllModals();
+
+    }
+
+});
+
+
+/* ===============================
+   INITIALIZE
+================================ */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+    checkLoginState();
+    console.log("StressZen initialized");
+
+});
+
+</script>
+</body>
+</html>

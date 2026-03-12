@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wearable Stress Prediction</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --primary-dark: #4834d4;
+            --secondary: #00cec9;
+            --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #d63031;
+            --light: #f8f9fa;
+            --dark: #2d3436;
+            --gray: #636e72;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #dfe6e9 100%);
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            min-height: 100vh;
+            color: var(--dark);
+            background-image: url("{{ url_for('static', filename='p8.jpeg') }}");
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 2.5rem;
+            margin: 2rem auto;
+            max-width: 800px;
+        }
+        
+        .form-title {
+            color: var(--primary-dark);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            text-align: center;
+            position: relative;
+            padding-bottom: 1rem;
+        }
+        
+        .form-title:after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            border-radius: 4px;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: black;
+            display: flex;
+            align-items: center;
+        }
+        
+        .form-label i {
+            margin-right: 8px;
+            color: var(--primary);
+        }
+        
+        .form-control, .form-select {
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.8);
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.15);
+        }
+        
+        .input-group-text {
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .btn-predict {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            padding: 1rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            width: 100%;
+            margin-top: 1rem;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.3);
+        }
+        
+        .btn-predict:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(108, 92, 231, 0.4);
+        }
+        
+        .result-container {
+            padding: 2rem;
+            border-radius: 12px;
+            margin-top: 2rem;
+            text-align: center;
+            display: none;
+            animation: fadeIn 0.5s ease-out;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .prediction-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 1rem 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        
+        .stress-level {
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 0.5rem 1.5rem;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        
+        .low-stress {
+            background-color: rgba(0, 184, 148, 0.1);
+            color: var(--success);
+            border: 1px solid var(--success);
+        }
+        
+        .moderate-stress {
+            background-color: rgba(253, 203, 110, 0.1);
+            color: #e17055;
+            border: 1px solid #e17055;
+        }
+        
+        .high-stress {
+            background-color: rgba(214, 48, 49, 0.1);
+            color: var(--danger);
+            border: 1px solid var(--danger);
+        }
+        
+        .feature-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.5rem;
+        }
+        
+        .invalid-feedback {
+            display: none;
+            color: var(--danger);
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+        
+        .is-invalid {
+            border-color: var(--danger) !important;
+        }
+        
+        .is-invalid ~ .invalid-feedback {
+            display: block;
+        }
+        
+        @media (max-width: 768px) {
+            .glass-card {
+                padding: 1.5rem;
+                margin: 1rem;
+            }
+            
+            .row > div {
+                margin-bottom: 1rem;
+            }
+        }
+        .recommendations-container {
+            overflow-x: auto;
+            white-space: nowrap;
+            padding: 20px 0;
+            -webkit-overflow-scrolling: touch;
+        }
+        
+        .recommendation-card {
+            display: inline-block;
+            width: 300px;
+            white-space: normal;
+            margin-right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+            border: none;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .category-icon {
+            font-size: 2rem;
+            color: #6c63ff;
+            margin-bottom: 15px;
+        }
+        
+        .recommendation-item {
+            padding: 8px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        
+        .recommendation-item:last-child {
+            border-bottom: none;
+        }
+        
+       
+        
+        
+        
+        /* Custom scrollbar for horizontal container */
+        .recommendations-container::-webkit-scrollbar {
+            height: 8px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 10px;
+        }
+        
+        .recommendations-container::-webkit-scrollbar-thumb:hover {
+            background: #a1a1a1;
+        }
+        
+        .badge-stress {
+            font-size: 1rem;
+            padding: 8px 12px;
+            border-radius: 20px;
+        }
+
+
+
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 1rem 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+        }
+        
+        .logo i {
+            margin-right: 10px;
+            color: white;
+        }
+        
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+        
+        nav ul li {
+            margin-left: 2rem;
+        }
+        
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        nav ul li a:hover {
+            opacity: 0.8;
+        }
+        
+        nav ul li a::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            background: white;
+            bottom: -5px;
+            left: 0;
+            transition: width 0.3s ease;
+        }
+        
+        nav ul li a:hover::after {
+            width: 100%;
+        }
+        
+        .mobile-menu-btn {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+
+         /* Footer */
+        footer {
+            background: var(--dark);
+            color: white;
+            padding: 3rem 0 1rem;
+        }
+        
+        .footer-content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-column {
+            flex: 1;
+            min-width: 200px;
+            margin-bottom: 2rem;
+            padding: 0 1rem;
+        }
+        
+        .footer-column h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            width: 50%;
+            height: 2px;
+            background: var(--secondary);
+            bottom: -8px;
+            left: 0;
+        }
+        
+        .footer-column ul {
+            list-style: none;
+        }
+        
+        .footer-column ul li {
+            margin-bottom: 0.8rem;
+        }
+        
+        .footer-column ul li a {
+            color: var(--gray-light);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .footer-column ul li a:hover {
+            color: white;
+            padding-left: 5px;
+        }
+        
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .social-links a {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .social-links a:hover {
+            background: var(--secondary);
+            transform: translateY(-3px);
+        }
+        
+        .copyright {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--gray-light);
+            font-size: 0.9rem;
+        }
+        
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-container">
+            <div class="logo">
+                <i class="fas fa-brain"></i>
+                <span>StressZen</span>
+            </div>
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav>
+                <ul id="navMenu">
+                    <li><a href="/">Home</a></li>
+                   
+                    
+                    
+                    <li><a href="/">Contact</a></li>
+                    
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container py-5">
+        <div class="glass-card">
+            <h1 class="form-title">
+                <i class="fas fa-heartbeat"></i> Predict Your Stress
+            </h1>
+            
+            <form id="stressForm" novalidate>
+                <div class="row">
+                    <!-- Age Field -->
+                    <div class="col-md-6 mb-4">
+                        <label for="age" class="form-label">
+                            <i class="fas fa-user"></i> Age
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                            <input type="number" class="form-control" id="age" name="age" min="13" max="20" required placeholder="13-20">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a valid age between 13 and 20
+                        </div>
+                    </div>
+                    
+                    <!-- Gender Field -->
+                    <div class="col-md-6 mb-4">
+                        <label for="gender" class="form-label">
+                            <i class="fas fa-venus-mars"></i> Gender
+                        </label>
+                        <select class="form-select" id="gender" name="gender" required>
+                            <option value="" disabled selected>Select gender</option>
+                            <option value="0">Female</option>
+                            <option value="1">Male</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select your gender
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Social Media Hours -->
+                    <div class="col-md-6 mb-4">
+                        <label for="social_media" class="form-label">
+                            <i class="fas fa-comment-dots"></i> Social Media (hours/day)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="number" class="form-control" id="social_media" name="social_media" min="0" max="15" step="0.1" required placeholder="0-15 hours">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a value between 0 and 15
+                        </div>
+                    </div>
+                    
+                    <!-- Exercise Hours -->
+                    <div class="col-md-6 mb-4">
+                        <label for="exercise" class="form-label">
+                            <i class="fas fa-running"></i> Exercise (hours/day)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="number" class="form-control" id="exercise" name="exercise" min="0" max="5" step="0.1" required placeholder="0-5 hours">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a value between 0 and 5
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Sleep Hours -->
+                    <div class="col-md-6 mb-4">
+                        <label for="sleep" class="form-label">
+                            <i class="fas fa-moon"></i> Sleep (hours/night)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="number" class="form-control" id="sleep" name="sleep" min="0" max="12" step="0.1" required placeholder="0-12 hours">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a value between 0 and 12
+                        </div>
+                    </div>
+                    
+                    <!-- Screen Time Hours -->
+                    <div class="col-md-6 mb-4">
+                        <label for="screen_time" class="form-label">
+                            <i class="fas fa-desktop"></i> Screen Time (hours/day)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-clock"></i></span>
+                            <input type="number" class="form-control" id="screen_time" name="screen_time" min="0" max="15" step="0.1" required placeholder="0-15 hours">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a value between 0 and 15
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <!-- Survey Stress Score -->
+                    <div class="col-md-6 mb-4">
+                        <label for="survey_stress" class="form-label">
+                            <i class="fas fa-clipboard-list"></i> Stress Score (1-5)
+                        </label>
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-stress-score"></i></span>
+                            <input type="number" class="form-control" id="survey_stress" name="survey_stress" min="1" max="5" step="1" required placeholder="1 (low) to 5 (high)">
+                        </div>
+                        <div class="invalid-feedback">
+                            Please enter a value between 1 and 5
+                        </div>
+                    </div>
+                    
+                    <!-- Support System -->
+                    <div class="col-md-6 mb-4">
+                        <label for="support_system" class="form-label">
+                            <i class="fas fa-hands-helping"></i> Support System
+                        </label>
+                        <select class="form-select" id="support_system" name="support_system" required>
+                            <option value="" disabled selected>Select support level</option>
+                            <option value="0">Low</option>
+                            <option value="1">Moderate</option>
+                            <option value="2">High</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select your support system level
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Academic Performance -->
+                <div class="mb-4">
+                    <label for="academic_performance" class="form-label">
+                        <i class="fas fa-graduation-cap"></i> Academic Performance
+                    </label>
+                    <select class="form-select" id="academic_performance" name="academic_performance" required>
+                        <option value="" disabled selected>Select performance level</option>
+                        <option value="0">Poor</option>
+                        <option value="1">Average</option>
+                        <option value="2">Good</option>
+                        <option value="3">Excellent</option>
+                    </select>
+                    <div class="invalid-feedback">
+                        Please select your academic performance level
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-predict">
+                    <i class="fas fa-calculator me-2"></i> Predict Stress Score
+                </button>
+            </form>
+            
+            <div id="resultContainer" class="result-container">
+                <div class="feature-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h3>Your Stress Prediction</h3>
+                <div class="prediction-value" id="predictionResult">0.00</div>
+                <div id="stressLevel" class="stress-level">Stress Level</div>
+                <p class="mt-3 text-muted">Based on your input parameters</p>
+            </div>
+        </div>
+    </div>
+      <div class="container py-4">
+        <h2 class="text-center mb-4" ><i class="fas fa-lightbulb me-2" ></i>Personalized Recommendations</h2>
+        <!-- Horizontal Recommendations -->
+        <div class="recommendations-container">
+            <!-- Sleep Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-bed"></i></div>
+                    <h4>Sleep</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Consistent bedtime
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Screen-free hour before bed
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Cool, dark bedroom
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        15-min relaxation routine
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Digital Wellness Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-mobile-alt"></i></div>
+                    <h4>Digital Wellness</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Set app time limits
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Phone-free meals
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Curate positive feeds
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekly digital detox
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Activity Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-running"></i></div>
+                    <h4>Activity</h4>
+                   
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        15-min walk breaks
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Try dance/yoga
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Hourly stretch breaks
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekend sports
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Academics Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-book"></i></div>
+                    <h4>Academics</h4>
+                    
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Pomodoro technique
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Priority task list
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Early help seeking
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Consistent schedule
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Social Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-users"></i></div>
+                    <h4>Social Support</h4>
+                   
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Weekly friend time
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Join interest groups
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        Open up to trusted ones
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-check-circle text-success me-2"></i>
+                        School counseling
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Quick Relief Card -->
+            <div class="recommendation-card p-3">
+                <div class="text-center">
+                    <div class="category-icon"><i class="fas fa-first-aid"></i></div>
+                    <h4>Quick Relief</h4>
+                    <p class="text-muted small">When stressed</p>
+                </div>
+                <ul class="list-unstyled mt-3">
+                    <li class="recommendation-item">
+                        <i class="fas fa-wind text-primary me-2"></i>
+                        4-7-8 breathing
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-hand-holding-heart text-primary me-2"></i>
+                        5-4-3-2-1 grounding
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-music text-primary me-2"></i>
+                        10-min calm music
+                    </li>
+                    <li class="recommendation-item">
+                        <i class="fas fa-pen text-primary me-2"></i>
+                        5-min journaling
+                    </li>
+                </ul>
+            </div>
+        </div>
+        
+       
+    </div>
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-column">
+                    <h3>StressZen</h3>
+                    <p>Helping you understand and manage stress through AI-powered insights.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul>
+                        <li><a href="/">Home</a></li>
+                       
+                       
+                        <li><a href="/">Contact</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Contact</h3>
+                    <ul>
+                        <li><i class="fas fa-envelope"></i> stresszen@gmail.com</li>
+                        <li><i class="fas fa-phone"></i>9424758291 </li>
+                        <li><i class="fas fa-map-marker-alt"></i> Ramnagara 2nd cross Banglore </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2023 StressZen. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Form validation
+        document.getElementById('stressForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate all fields
+            let isValid = true;
+            const form = this;
+            
+            // Check each required field
+            const requiredFields = form.querySelectorAll('[required]');
+            requiredFields.forEach(field => {
+                if (!field.value) {
+                    field.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    field.classList.remove('is-invalid');
+                    
+                    // Additional validation for number fields
+                    if (field.type === 'number') {
+                        const min = parseFloat(field.min);
+                        const max = parseFloat(field.max);
+                        const value = parseFloat(field.value);
+                        
+                        if (isNaN(value) || value < min || value > max) {
+                            field.classList.add('is-invalid');
+                            isValid = false;
+                        }
+                    }
+                }
+            });
+            
+            if (!isValid) {
+                // Scroll to first invalid field
+                const firstInvalid = form.querySelector('.is-invalid');
+                firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+            
+            // If valid, proceed with prediction
+            predictStress();
+        });
+        
+        // Real-time validation on input
+        document.querySelectorAll('input, select').forEach(field => {
+            field.addEventListener('input', function() {
+                if (this.checkValidity()) {
+                    this.classList.remove('is-invalid');
+                }
+            });
+        });
+        
+        function predictStress() {
+            // Collect form values
+            const inputData = {
+                age: parseFloat(document.getElementById('age').value),
+                gender: parseInt(document.getElementById('gender').value),
+                social_media: parseFloat(document.getElementById('social_media').value),
+                exercise: parseFloat(document.getElementById('exercise').value),
+                sleep: parseFloat(document.getElementById('sleep').value),
+                screen_time: parseFloat(document.getElementById('screen_time').value),
+                survey_stress: parseInt(document.getElementById('survey_stress').value),
+                support_system: parseInt(document.getElementById('support_system').value),
+                academic_performance: parseInt(document.getElementById('academic_performance').value)
+            };
+
+            // Calculate derived features
+            const simulated_wearable_score = 0.29;
+            const stress_gap = inputData.survey_stress - simulated_wearable_score;
+            const lifestyle_score = inputData.exercise + inputData.sleep - inputData.social_media;
+
+            // Simulate prediction (replace with actual API call)
+            const mockPrediction = Math.min(1, Math.max(0, 
+                (inputData.survey_stress * 0.3) + 
+                (inputData.social_media * 0.1) - 
+                (inputData.exercise * 0.15) - 
+                (inputData.sleep * 0.1) + 
+                (inputData.screen_time * 0.05) +
+                (stress_gap * 0.2)
+            )).toFixed(4);
+
+            // Display results
+            const resultContainer = document.getElementById('resultContainer');
+            const predictionResult = document.getElementById('predictionResult');
+            const stressLevel = document.getElementById('stressLevel');
+            
+            predictionResult.textContent = mockPrediction;
+            
+            if (mockPrediction < 0.33) {
+                stressLevel.className = 'stress-level low-stress';
+                stressLevel.innerHTML = '<i class="fas fa-smile me-2"></i> Low Stress';
+            } else if (mockPrediction < 0.66) {
+                stressLevel.className = 'stress-level moderate-stress';
+                stressLevel.innerHTML = '<i class="fas fa-meh me-2"></i> Moderate Stress';
+            } else {
+                stressLevel.className = 'stress-level high-stress';
+                stressLevel.innerHTML = '<i class="fas fa-frown me-2"></i> High Stress';
+            }
+            
+            resultContainer.style.display = 'block';
+            
+            // Scroll to results
+            resultContainer.scrollIntoView({ behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
